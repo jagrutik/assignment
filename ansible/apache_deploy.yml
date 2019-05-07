@@ -1,6 +1,6 @@
 ---
 - name: configure apache server
-  hosts: all
+  hosts: webservers
   remote_user: ansi
   become: yes
   tasks:
