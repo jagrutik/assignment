@@ -1,0 +1,70 @@
+---
+- name: configure apache server
+  hosts: all
+  remote_user: ansi
+  become: yes
+  tasks:
+    - name: Upgrade all packages
+      yum:
+        name: '*'
+        state: latest
+        
+    - name: Install LAMP packages
+      yum:    
+        name: 
+          - httpd24 
+          - php70 
+          - mysql56-server 
+          - php70-mysqlnd
+          - php70-mbstring.x86_64
+          - php70-zip.x86_64
+        state: present
+        
+    - name: start and enable http server
+      service:
+        name: httpd
+        state: started
+        enabled: true
+            
+    - name: add user to apache group sudo usermod -a -G apache ec2-user
+      user: 
+        name: ec2-user
+        group: apache
+        
+    - name: change ownership sudo chown -R ec2-user:apache /var/www
+      file:
+        path: /var/www
+        owner: ec2-user
+        group: apache
+        mode: 2755
+        
+    - name: Download tar.gz
+      get_url: 
+        url: https://releases.wikimedia.org/mediawiki/1.32/mediawiki-1.32.1.tar.gz
+        dest: /var/www/html
+        mode: 0755
+        
+    - name: Download tar.gz gpg --verify mediawiki-1.32.1.tar.gz.sig mediawiki-1.32.1.tar.gz
+      get_url: 
+        url: https://releases.wikimedia.org/mediawiki/1.32/mediawiki-1.32.1.tar.gz.sig
+        dest: /var/www/html
+        mode: 0755
+        
+    - name: check tarball's integrity
+      command: gpg --verify mediawiki-1.32.1.tar.gz.sig mediawiki-1.32.1.tar.gz
+      check_mode: no
+      
+    - name: extract mediawiki tar
+      unarchive:
+        src: mediawiki-1.32.1.tar.gz
+        dest: /var/www/html
+        mode: 0755
+    
+    - name: rename the directory
+      command: mv /var/www/html/mediawiki-1.32.1 /var/www/html/mediawiki
+     
+    - name: delete tar.qz
+      file:
+        path: var/www/html/mediawiki-1.32.1.tar.gz
+        state: absent
+ 

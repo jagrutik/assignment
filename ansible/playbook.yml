@@ -1,0 +1,23 @@
+---
+- name: configure ansible server
+  hosts: server
+  remote_user: ansi
+  become: yes
+  tasks:
+    - name: Upgrade all packages
+      yum:
+        name: '*'
+        state: latest
+        
+    - name: Install LAMP packages
+      yum:    
+        name: 
+          - git 
+        state: present
+
+    - name: Checkout Git repository
+      git:
+        repo: https://github.com/jagrutik/assignment.git
+        dest: "/etc/ansible/git-repo"
+        force: yes
+            
