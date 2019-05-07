@@ -37,6 +37,13 @@
         owner: ec2-user
         group: apache
         mode: 2755
+ 
+    - name: execute chmod 2755 on directory
+      shell: 'find /var/www -type d -exec sudo chmod 2775 {} \;'
+
+    - name: execute chmod 0664 on files
+      shell: 'find /var/www -type f -exec sudo chmod 0664 {} \;'
+
         
     - name: Download tar.gz
       get_url: 
@@ -49,22 +56,19 @@
         url: https://releases.wikimedia.org/mediawiki/1.32/mediawiki-1.32.1.tar.gz.sig
         dest: /var/www/html
         mode: 0755
-        
-    - name: check tarball's integrity
-      command: gpg --verify mediawiki-1.32.1.tar.gz.sig mediawiki-1.32.1.tar.gz
-      check_mode: no
       
     - name: extract mediawiki tar
       unarchive:
-        src: mediawiki-1.32.1.tar.gz
-        dest: /var/www/html
-        mode: 0755
+        src: /var/www/html/mediawiki-1.32.1.tar.gz
+        dest: /var/www/html/
+        remote_src: yes
+
     
     - name: rename the directory
       command: mv /var/www/html/mediawiki-1.32.1 /var/www/html/mediawiki
      
     - name: delete tar.qz
       file:
-        path: var/www/html/mediawiki-1.32.1.tar.gz
+        path: /var/www/html/mediawiki-1.32.1.tar.gz
         state: absent
  
