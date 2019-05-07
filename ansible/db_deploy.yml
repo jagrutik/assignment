@@ -1,0 +1,61 @@
+---
+- name: configure db server
+  hosts: dbservers
+  var_files:
+    - ./vars/vault.yml
+    - ./vars/variable.yml
+  remote_user: ansi
+  become: yes
+  tasks:
+    - name: Upgrade all packages
+      yum:
+        name: '*'
+        state: latest
+        
+    - name: Install LAMP packages
+      yum:    
+        name: 
+          - httpd24 
+          - php70 
+          - mysql56-server 
+          - php70-mysqlnd
+          - php70-mbstring.x86_64
+          - php70-zip.x86_64
+        state: present
+        
+    - name: create a new db with name mediawiki
+      mysql_db:
+        name: mediawiki
+        state: present
+        
+    - name: start and enable http server
+      service:
+        name: mysqld
+        state: started
+        enabled: true
+        
+    - name: adds python MySQL support
+      yum:
+        name: MySQL-python
+        state: present
+        
+    - name: handle secrets
+      lineinfile:
+        dest:/etc/ansible/parameters.yml
+        regexp: "^    secret:"
+        line: "    secret: {{ root_password_secret }}"
+      tags:
+        - deploy
+       
+    - name: Set the root password
+      mysql_user:
+        login_user: root
+        login_password: {{ root_password_secret }}
+        user: root
+        password: {{ root_password_secret }}
+        priv:*.*:ALL.GRANT
+        
+    - name: remove mysql test database
+      mysql_db:
+        name: test
+        state:absent

@@ -1,0 +1,5 @@
+---
+# varibale values
+
+root_password_secret: {{ vault_root_password }}
+
